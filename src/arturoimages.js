@@ -10,7 +10,7 @@ const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
 
 app.use(compression());
-app.use(fileUpload());
+app.use(fileUpload({preserveExtension: true}));
 
 
 app.use(bodyParser.urlencoded({extended: false }));
@@ -41,32 +41,38 @@ app.use("/image/:image", (req, res, next) => {
 
 app.post("/upload", (req, res, next) => {
     if (req.body.password === "9RYJ)>rmQuSfD>#") {
-        var filename = uuid4().replace(/-/g, "");
-        var image = req.files.image;
-        image.mv('images/' + filename + '.png', (err) => {
-            if (err) {
-                console.error(err);
-                res.code(err.code).send(err.message);
-            } else {
-                console.log("Uploaded:" + filename);
-                res.send("/image/" + filename + ".png");
-            }
-        });
+        try {
+            var filename = uuid4().replace(/-/g, "");
+            var image = req.files.image;
+            var ext = image.mimetype.split('/')[1]
+        } catch (e) {
+            console.log(e.message);
+            var ext = null;
+            res.status(400).send("400 Bad Request");
+        }
+        if (FileValidation(ext)) {
+            image.mv('images/' + filename + "." + ext, (err) => {
+                if (err) {
+                    console.error("Error:" + err.message);
+                    res.code(err.code).send(err.message);
+                } else {
+                    console.log("Uploaded:" + filename);
+                    res.send("/image/" + filename + "." + ext);
+                }
+            });
+        } else {
+            res.status(400).send("400 Invalid Filetype");
+        }
     } else {
         res.status(403).send("403 FUCK OFF");
     }
 });
 
-function FileValidate(file) {
-    var valid = false;
-    const validfiles = ['png', 'jpg', 'jpeg', 'svg'];
-    validfiles.forEach(extension => {
-        if (file.endsWith(extension)) {
-            var valid = true;
-            break;
-        }
+function FileValidation(ext) {
+    const validfiles = ['png', 'jpg', 'jpeg', 'gif'];
+    return validfiles.some((element, index, array) => {
+        return element === ext;
     });
-    return valid;
 }
 
 function startServer() {
