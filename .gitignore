@@ -1,3 +1,4 @@
 images
 *.png
+sslcerts
 node_modules
