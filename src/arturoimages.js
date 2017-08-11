@@ -8,25 +8,22 @@ const path = require('path');
 const app = new express();
 const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
-const validfiles = ['png', 'jpg', 'jpeg', 'svg'];
 
 app.use(compression());
 app.use(fileUpload());
 
 
-
 app.use(bodyParser.urlencoded({extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParser.text());
-//app.use('/static', express.static(path.join(__dirname, "static")));
+app.use('/static', express.static(path.join(__dirname, "static")));
 app.use('/images', express.static(path.join(__dirname, "images")));
-//app.set('views', path.join(__dirname, "views"));
+app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
 app.use((req, res, next) => {
     console.log(`${req.path}`);
     next();
 });
-
 
 app.use("/image/:image", (req, res, next) => {
     if (!req.params.image) {
@@ -34,14 +31,16 @@ app.use("/image/:image", (req, res, next) => {
     } else {
         fs.stat('images/' + req.params.image, (error, stat) => {
             if (error == null) {
-                res.redirect('/images/' + req.params.image);
+                var img = {type: "image", image: "/images/" + req.params.image}
+                console.log(img);
+                res.render('image', img);
             }
         });
     }
 });
 
 app.post("/upload", (req, res, next) => {
-    if (req.body.password == "9RYJ)>rmQuSfD>#") {
+    if (req.body.password === "9RYJ)>rmQuSfD>#") {
         var filename = uuid4().replace(/-/g, "");
         var image = req.files.image;
         image.mv('images/' + filename + '.png', (err) => {
@@ -58,6 +57,17 @@ app.post("/upload", (req, res, next) => {
     }
 });
 
+function FileValidate(file) {
+    var valid = false;
+    const validfiles = ['png', 'jpg', 'jpeg', 'svg'];
+    validfiles.forEach(extension => {
+        if (file.endsWith(extension)) {
+            var valid = true;
+            break;
+        }
+    });
+    return valid;
+}
 
 function startServer() {
     // Creates unix socket
@@ -78,5 +88,3 @@ function startServer() {
 if (require.main === module) {
     startServer();
 }
-
-
