@@ -29,13 +29,25 @@ app.use("/image/:image", (req, res, next) => {
     if (!req.params.image) {
         res.status(400).send("Invalid file");
     } else {
-        fs.stat('images/' + req.params.image, (error, stat) => {
-            if (error == null) {
+        fs.stat(path.join(__dirname, "images",  req.params.image), (error, stats) => {
+            if (error === null) {
                 var img = {type: "image", image: "/images/" + req.params.image}
                 console.log(img);
+                img.download = "/download/" + req.params.image;
                 res.render('image', img);
+            } else {
+                res.status(404).send("404 File not found")
             }
         });
+    }
+});
+
+app.get("/download/:file", (req, res, next) => {
+    try {
+        var file = path.join(__dirname, "images", req.params.file);
+        res.download(file);
+    } catch (e) {
+        res.status(404).send("404 File not found");
     }
 });
 

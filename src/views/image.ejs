@@ -3,22 +3,36 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta property="og:title" content="Arturo Images">
-    <meta property="twitter:title" content="Arturo Images">
-    <meta property="twitter:card" content="summary_large_image">
+
+    <meta name="twitter:title" content="Dixionary">
+    <meta name="twitter:description" content="Dixionary Image hosting">
+    <meta name="twitter:type" content="website">
+    <meta name="twitter:image" content="https://vvv.dixionary.com<%= image %>">
+    <meta name="twitter:url" content="https://vvv.dixionary.com<%= image %>">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <meta property="og:title" content="Dixionary">
+    <meta property="og:description" content="Dixionary Image hosting">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="<%= image %>">
-    <meta property="twitter:image" content="<%= image %>">
-    <meta property="og:description" content="Image hosting website">
+    <meta property="og:image" content="https://vvv.dixionary.com<%= image %>">
+    <meta property="og:url" content="https://vvv.dixionary.com<%= image %>">
+
     <link rel='image_src' href='<%= image %>'>
-    <link rel='stylesheet' href='/static/css/style.css'>
-    <title>Arturo Images</title>
+    <link rel='stylesheet' href='/static/css/custom.css'>
+    <link rel='stylesheet' href='/static/css/bulma.css'>
+    <title>Dixionary Images</title>
 </head>
 <body>
-    <div class="container">
-        <a href="<%= image %>">
-            <img src="<%= image %>">
-        </span>
+    <div class="hero is-fullheight background">
+        <div class='hero-head'><br></div>
+        <div class='container has-text-centered'>
+            <a href="<%= image %>">
+                <img src="<%= image %>" class='imgspecs'>
+            </a>
+            <br>
+            <a class='button is-info' href='<%= dovnload %>'>Download</a>
+        </div>
+        <div class='hero-foot'><br></div>
     </div>
 </body>
 

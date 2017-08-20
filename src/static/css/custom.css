@@ -1,0 +1,12 @@
+.background {
+background: rgb(23, 23, 23); /* Old Browsers */
+background: -webkit-linear-gradient(bottom right,rgb(23, 23, 23),rgb(36, 37, 37)); /*Safari 5.1-6*/
+background: -o-linear-gradient(bottom right,rgb(23, 23, 23),rgb(36, 37, 37)); /*Opera 11.1-12*/
+background: -moz-linear-gradient(bottom right,rgb(23, 23, 23),rgb(36, 37, 37)); /*Fx 3.6-15*/
+background: linear-gradient(bottom right, rgb(23, 23, 23), rgb(36, 37, 37)); /*Standard*/
+}
+
+.imgspecs {
+    max-height: 700px;
+    max-width: 900px;
+}
