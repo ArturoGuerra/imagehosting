@@ -1,9 +1,17 @@
-.background {
+.background-2 {
 background: rgb(23, 23, 23); /* Old Browsers */
 background: -webkit-linear-gradient(bottom right,rgb(23, 23, 23),rgb(36, 37, 37)); /*Safari 5.1-6*/
 background: -o-linear-gradient(bottom right,rgb(23, 23, 23),rgb(36, 37, 37)); /*Opera 11.1-12*/
 background: -moz-linear-gradient(bottom right,rgb(23, 23, 23),rgb(36, 37, 37)); /*Fx 3.6-15*/
 background: linear-gradient(bottom right, rgb(23, 23, 23), rgb(36, 37, 37)); /*Standard*/
+}
+
+.background {
+background: rgb(30, 29, 29); /* Old Browsers */
+background: -webkit-linear-gradient(bottom left,rgb(30, 29, 29),rgb(44, 43, 43)); /*Safari 5.1-6*/
+background: -o-linear-gradient(bottom left,rgb(30, 29, 29),rgb(44, 43, 43)); /*Opera 11.1-12*/
+background: -moz-linear-gradient(bottom left,rgb(30, 29, 29),rgb(44, 43, 43)); /*Fx 3.6-15*/
+background: linear-gradient(bottom left, rgb(30, 29, 29), rgb(44, 43, 43)); /*Standard*/
 }
 
 .imgspecs {
