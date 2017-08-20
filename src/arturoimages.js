@@ -52,7 +52,7 @@ app.get("/download/:file", (req, res, next) => {
 });
 
 app.post("/upload", (req, res, next) => {
-    if (req.body.password === "9RYJ)>rmQuSfD>#") {
+    if (req.headers["x-api-key"] === "9RYJ)>rmQuSfD>#") {
         try {
             var filename = uuid4().replace(/-/g, "");
             var image = req.files.image;
