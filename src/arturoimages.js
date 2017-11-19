@@ -6,18 +6,18 @@ const uuid4 = require('uuid/v4');
 const fs = require('fs');
 const path = require('path');
 const app = new express();
-const fileUpload = require('express-fileupload');
+const Multer = require("multer");
 const bodyParser = require('body-parser');
-
+const Storage = require('@google-cloud/storage');
+const storage = new Storage();
+const multer = Multer({limits: {fileSize: 10000000}});
+const bucketName = "dixionary-images";
+const bucket = storage.bucket(bucketName);
 app.use(compression());
-app.use(fileUpload({preserveExtension: true}));
-
-
-app.use(bodyParser.urlencoded({extended: false }));
-app.use(bodyParser.json());
-app.use(bodyParser.text());
+app.use(bodyParser.urlencoded({extended: false, limit: "1mb"}));
+app.use(bodyParser.json({limit: "1mb"}));
+app.use(bodyParser.text({limit: "1mb"}));
 app.use('/static', express.static(path.join(__dirname, "static")));
-app.use('/images', express.static(path.join(__dirname, "images")));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
 app.use((req, res, next) => {
@@ -29,54 +29,53 @@ app.use("/image/:image", (req, res, next) => {
     if (!req.params.image) {
         res.status(400).send("Invalid file");
     } else {
-        fs.stat(path.join(__dirname, "images",  req.params.image), (error, stats) => {
-            if (error === null) {
-                var img = {type: "image", image: "/images/" + req.params.image}
-                console.log(img);
-                img.download = "/download/" + req.params.image;
+        storage
+            .bucket(bucketName)
+            .file(req.params.image)
+            .getMetadata()
+            .then(result => {
+                const metadata = result[0];
+                console.log(`File: ${metadata.name}`);
+                let img = {};
+                img.type = "image";
+                img.image = "https://storage.googleapis.com/dixionary-images/" + String(req.params.image);
                 res.render('image', img);
-            } else {
-                res.status(404).send("404 File not found")
+            })
+            .catch(e => {
+                console.error(e);
+                res.status(404).send("404 File not found!!");
+            });
+    }
+});
+
+app.post("/upload", multer.single('image'), (req, res, next) => {
+    try {
+        var image = req.file;
+        var filename = uuid4().replace(/-/g, "").substring(0,2) + Date.now()
+        var ext = image.mimetype.split('/')[1]
+    } catch (e) {
+        console.log(e.message);
+        var ext = null;
+        res.status(400).send("400 Bad Request");
+    }
+    if (FileValidation(ext)) {
+        console.log(req.file);
+        let blob = bucket.file(filename + "." + ext);
+        let blobStream = blob.createWriteStream({
+            metadata: {
+                contentType: req.file.mimetype
             }
         });
-    }
-});
-
-app.get("/download/:file", (req, res, next) => {
-    try {
-        var file = path.join(__dirname, "images", req.params.file);
-        res.download(file);
-    } catch (e) {
-        res.status(404).send("404 File not found");
-    }
-});
-
-app.post("/upload", (req, res, next) => {
-    if (req.headers["x-api-key"] === "9RYJ)>rmQuSfD>#") {
-        try {
-            var filename = uuid4().replace(/-/g, "");
-            var image = req.files.image;
-            var ext = image.mimetype.split('/')[1]
-        } catch (e) {
-            console.log(e.message);
-            var ext = null;
-            res.status(400).send("400 Bad Request");
-        }
-        if (FileValidation(ext)) {
-            image.mv('images/' + filename + "." + ext, (err) => {
-                if (err) {
-                    console.error("Error:" + err.message);
-                    res.code(err.code).send(err.message);
-                } else {
-                    console.log("Uploaded:" + filename);
-                    res.send("/image/" + filename + "." + ext);
-                }
-            });
-        } else {
-            res.status(400).send("400 Invalid Filetype");
-        }
+        blobStream.end(req.file.buffer);
+        blobStream.on("start", () => {console.log("STARTED")});
+        blobStream.on("error", err => {console.log(err)});
+        blobStream.on("finish", () => {
+            blob.makePublic().then(() => {
+                res.send("/image/" + blob.name);
+            }).catch(console.error);
+        });
     } else {
-        res.status(403).send("403 FUCK OFF");
+        res.status(400).send("400 Invalid Filetype")
     }
 });
 
