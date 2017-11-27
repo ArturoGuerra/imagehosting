@@ -88,18 +88,20 @@ function FileValidation(ext) {
 
 function startServer() {
     // Creates unix socket
-    var server = http.createServer(app);
-    server.listen("./imageserver.sock");
-    server.on('listening', onListening);
-    function onListening() {
-        fs.chmodSync('./imageserver.sock', '775');
-        console.log("Started unix socked");
-    };
-    // Deletes socket file
-    function servershutdown () {
-        server.close();
-    }
-    process.on('SIGINT', servershutdown);
+    fs.unlink("./imageserver.sock", (error) => {
+        let server = http.createServer(app);
+        server.listen("./imageserver.sock");
+        server.on('listening', onListening);
+        function onListening() {
+            fs.chmodSync('./imageserver.sock', '775');
+            console.log("Started unix socked");
+        };
+        // Deletes socket file
+        function servershutdown () {
+            server.close();
+        }
+        process.on('SIGINT', servershutdown);
+    });
 }
 
 if (require.main === module) {
