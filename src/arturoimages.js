@@ -40,9 +40,11 @@ app.use("/image/:image", (req, res, next) => {
     } else {
         fs.stat(path.join(__dirname, "images",  req.params.image), (error, stats) => {
             if (error === null) {
-                var img = {type: "image", image: "/images/" + req.params.image}
-                console.log(img);
-                img.download = "/download/" + req.params.image;
+                var img = {
+                    image: "/images/" + req.params.image,
+                    name: req.params.image
+                }
+                console.log(img.name);
                 res.render('image', img);
             } else {
                 res.status(404).send("404 File not found")
