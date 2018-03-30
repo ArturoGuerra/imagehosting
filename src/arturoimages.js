@@ -1,26 +1,38 @@
 #!/usr/bin/env nodejs
+const aws = require('aws-sdk');
 const express = require('express');
 const compression = require('compression');
 const http = require('http');
 const uuid4 = require('uuid/v4');
 const fs = require('fs');
 const path = require('path');
-const app = new express();
-const Multer = require("multer");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
 const bodyParser = require('body-parser');
-const storage = Multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, 'images')
-    },
-    filename: function(req, file, cb) {
-        let filename_noext = uuid4().replace(/-/g, "").substring(0,2) + Date.now()
-        let ext = file.mimetype.split('/')[1]
-        let filename = filename_noext + "." + ext
-        cb(null, filename)
-    }
-});
 
-const multer = Multer({limits: {fileSize: 100000000}, storage:storage});
+
+aws.config.update({region: "us-east-1"});
+const app = new express();
+const s3 = new new aws.S3();
+
+
+const storage = multerS3({
+    s3: s3,
+    bucket: "img-dixionary",
+    acl: "public-read",
+    metadata: function(req, file, cb) {
+        cb(null, {fieldName: file.fieldname});
+    },
+    key: function(req, files, cb) {
+        let filename_noext = uuid4().replace(/-/g, "").substring(0,2) + Date.now();
+        let ext = file.mimetype.split('/')[1];
+        let filename = filename_noext + "." + ext;
+        cb(null, filename);
+    }
+})
+
+const upload = multer({limits: {fileSize: 100000000}, storage: storage});
+
 app.use(compression());
 app.use(bodyParser.urlencoded({extended: false, limit: "100mb"}));
 app.use(bodyParser.json({limit: "100mb"}));
@@ -29,6 +41,7 @@ app.use('/static', express.static(path.join(__dirname, "static")));
 app.use('/images', express.static(path.join(__dirname, "images")));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
+
 app.use((req, res, next) => {
     console.log("Requested Path: " + `${req.path}`);
     let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -40,21 +53,15 @@ app.use("/image/:image", (req, res, next) => {
     if (!req.params.image) {
         res.status(400).send("Invalid file");
     } else {
-        fs.stat(path.join(__dirname, "images",  req.params.image), (error, stats) => {
-            if (error === null) {
-                var img = {
-                    image: "/images/" + req.params.image,
-                    name: req.params.image
-                }
-                res.render('image', img);
-            } else {
-                res.status(404).send("404 File not found")
-            }
-        });
+        let img = {
+            image: "https://s3.amazonaws.com/img-dixionary/" + req.params.image,
+            name: req.params.image
+        }
+        res.render("image", img);
     }
 });
 
-app.post("/upload", multer.single('image'), (req, res, next) => {
+app.post("/upload", upload.single('image'), (req, res, next) => {
     res.send('/image/' + req.file.filename)
 });
 
