@@ -30,7 +30,9 @@ app.use('/images', express.static(path.join(__dirname, "images")));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
 app.use((req, res, next) => {
-    console.log(`${req.path}`);
+    console.log("Requested Path: " + `${req.path}`);
+    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    console.log("Users IP: " + ip);
     next();
 });
 
@@ -44,7 +46,6 @@ app.use("/image/:image", (req, res, next) => {
                     image: "/images/" + req.params.image,
                     name: req.params.image
                 }
-                console.log(img.name);
                 res.render('image', img);
             } else {
                 res.status(404).send("404 File not found")
@@ -54,7 +55,6 @@ app.use("/image/:image", (req, res, next) => {
 });
 
 app.post("/upload", multer.single('image'), (req, res, next) => {
-    console.log(req.file);
     res.send('/image/' + req.file.filename)
 });
 
