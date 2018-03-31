@@ -1,6 +1,5 @@
 {
     name: "arturoimages",
     script: "arturoimages.js",
-    cwd: "/var/www/arturoimages/src/",
-    env: {GOOGLE_APPLICATION_CREDENTIALS: "/home/arturo/projects/bucket/Credit.json"}
+    cwd: "/var/www/arturoimages/src/"
 }

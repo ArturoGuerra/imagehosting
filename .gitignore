@@ -2,3 +2,4 @@ images
 *.png
 sslcerts
 node_modules
+config.json
