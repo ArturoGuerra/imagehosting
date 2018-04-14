@@ -14,6 +14,15 @@ const config = require('./config.json');
 aws.config.update({region: config.region});
 const app = new express();
 const s3 = new aws.S3();
+const httpServer = http.createServer(app)
+
+const port = process.env.PORT || 3000
+const host = process.env.HOST || '0.0.0.0'
+const socket = process.env.SOCKET || null
+
+app.set('port', port)
+app.set('host', host)
+app.set('socket', socket)
 
 function FileValidation(ext) {
     const validfiles = ['png', 'jpg', 'jpeg', 'gif'];
@@ -66,7 +75,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use("/image/:image", (req, res, next) => {
+app.get(["/:image", "/image/:image"], (req, res, next) => {
     if (!req.params.image) {
         res.status(400).send("Invalid file");
     } else {
@@ -83,26 +92,31 @@ app.use("/image/:image", (req, res, next) => {
     }
 });
 
-app.post("/upload", upload.single('image'), (req, res, next) => {
-    res.send('/image/' + req.file.key)
+app.post("/upload", AuthCheck, upload.single('image'), (req, res, next) => {
+    res.send('/' + req.file.key)
 });
 
-function startServer() {
-    // Creates unix socket
-    fs.unlink("./imageserver.sock", (error) => {
-        let server = http.createServer(app);
-        server.listen("./imageserver.sock");
-        server.on('listening', onListening);
-        function onListening() {
-            fs.chmodSync('./imageserver.sock', '775');
-            console.log("Started unix socked");
-        };
-        // Deletes socket file
-        function servershutdown () {
-            server.close();
-        }
-        process.on('SIGINT', servershutdown);
-    });
+
+function AuthCheck (req, res, next) {
+  if (req.headers['x-api-key'] === config.key) {
+    next()
+  } else {
+    res.status(403).json({ code: 403, status: 'Unauthorized access' })
+  }
+}
+
+function startServer () {
+  if (socket) {
+    if (fs.existsSync(socket)) {
+      fs.unlinkSync(socket)
+    }
+    httpServer.listen(socket, () => { console.log('Server listening on ' + socket) })
+    fs.chmodSync(socket, '0777')
+  } else {
+    httpServer.listen(port, host, () => {
+      console.log('Server listening on ' + host + ':' + port)
+    })
+  }
 }
 
 if (require.main === module) {

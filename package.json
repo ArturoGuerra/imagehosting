@@ -2,7 +2,7 @@
   "name": "arturoimages",
   "version": "1.0.0",
   "description": "ArturoNet image server",
-  "main": "arturoimages.js",
+  "main": "src/imagehost.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,5 +1,0 @@
-{
-    name: "arturoimages",
-    script: "arturoimages.js",
-    cwd: "/var/www/arturoimages/src/"
-}
