@@ -11,7 +11,10 @@ const multerS3 = require("multer-s3");
 const bodyParser = require('body-parser');
 const config = require('./config.json');
 
-aws.config.update({region: config.region});
+if (process.env.OUTSIDEAWS) {
+  console.log('Running outside aws services')
+  aws.config.update({region: config.region})
+}
 const app = new express();
 const s3 = new aws.S3();
 const httpServer = http.createServer(app)
@@ -69,10 +72,12 @@ app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
-    console.log("Requested Path: " + `${req.path}`);
-    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    console.log("Users IP: " + ip);
-    next();
+  console.log("Requested Path: " + `${req.path}`);
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log("Users IP: " + ip);
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 });
 
 app.get(["/:image", "/image/:image"], (req, res, next) => {
@@ -92,15 +97,21 @@ app.get(["/:image", "/image/:image"], (req, res, next) => {
     }
 });
 
-app.post("/upload", AuthCheck, upload.single('image'), (req, res, next) => {
+app.use("/upload", upload.single('image'), (req, res, next) => {
     res.send('/' + req.file.key)
 });
 
+app.use('/mupload', upload.any(), (req, res, next) => {
+  console.log(req.files)
+  res.end(req.files);
+})
 
 function AuthCheck (req, res, next) {
   if (req.headers['x-api-key'] === config.key) {
+    console.log('User authenticated')
     next()
   } else {
+    console.log('User failed authentication')
     res.status(403).json({ code: 403, status: 'Unauthorized access' })
   }
 }
