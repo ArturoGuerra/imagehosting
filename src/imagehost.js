@@ -1,4 +1,3 @@
-#!/usr/bin/env nodejs
 const aws = require('aws-sdk');
 const express = require('express');
 const compression = require('compression');
@@ -13,8 +12,9 @@ const config = require('./config.json');
 
 if (process.env.OUTSIDEAWS) {
   console.log('Running outside aws services')
-  aws.config.update({region: config.region})
+  aws.config.update({ region: process.env.REGION })
 }
+
 const app = new express();
 const s3 = new aws.S3();
 const httpServer = http.createServer(app)
