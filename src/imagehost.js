@@ -67,7 +67,6 @@ const uploadd = multer({
   dest: 'uploads/'
 })
 app.use(bodyParser.urlencoded({ extended: false, limit: '100mb' }));
-//app.use(bodyParser.json())
 app.use('/static', express.static(path.join(__dirname, "static")));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
