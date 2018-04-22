@@ -63,10 +63,11 @@ const upload = multer({
     }
 })
 
-app.use(compression());
-app.use(bodyParser.urlencoded({extended: false, limit: "100mb"}));
-app.use(bodyParser.json({limit: "100mb"}));
-app.use(bodyParser.text({limit: "100mb"}));
+const uploadd = multer({
+  dest: 'uploads/'
+})
+app.use(bodyParser.urlencoded({ extended: false, limit: '100mb' }));
+//app.use(bodyParser.json())
 app.use('/static', express.static(path.join(__dirname, "static")));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
@@ -97,7 +98,8 @@ app.get(["/:image", "/image/:image"], (req, res, next) => {
     }
 });
 
-app.use("/upload", upload.single('image'), (req, res, next) => {
+app.post("/upload", upload.single('file'), (req, res, next) => {
+    console.log(req.file)
     res.send('/' + req.file.key)
 });
 
