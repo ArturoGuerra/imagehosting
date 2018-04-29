@@ -5,10 +5,10 @@ const http = require('http');
 const uuid4 = require('uuid/v4');
 const fs = require('fs');
 const path = require('path');
+const morgan = require('morgan');
 const multer = require("multer");
 const multerS3 = require("multer-s3");
 const bodyParser = require('body-parser');
-const config = require('./config.json');
 
 if (process.env.OUTSIDEAWS) {
   console.log('Running outside aws services')
@@ -22,6 +22,8 @@ const httpServer = http.createServer(app)
 const port = process.env.PORT || 3000
 const host = process.env.HOST || '0.0.0.0'
 const socket = process.env.SOCKET || null
+const bucket = process.env.BUCKET || null
+const coldstore = process.env.COLDSTORE || null
 
 app.set('port', port)
 app.set('host', host)
@@ -36,7 +38,7 @@ function FileValidation(ext) {
 
 const storage = multerS3({
     s3: s3,
-    bucket: config.bucket,
+    bucket: bucket,
     acl: "public-read",
     metadata: function(req, file, cb) {
         cb(null, {fieldName: file.fieldname});
@@ -66,13 +68,14 @@ const upload = multer({
 const uploadd = multer({
   dest: 'uploads/'
 })
+
+app.use(morgan('tiny'));
 app.use(bodyParser.urlencoded({ extended: false, limit: '100mb' }));
 app.use('/static', express.static(path.join(__dirname, "static")));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
-  console.log("Requested Path: " + `${req.path}`);
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   console.log("Users IP: " + ip);
   res.header("Access-Control-Allow-Origin", "*");
@@ -86,11 +89,11 @@ app.get(["/:image", "/image/:image"], (req, res, next) => {
     } else {
         let img = {};
         img.name = req.params.image;
-        s3.getObject({Bucket: config.bucket, Key: req.params.image}, function(err, data) {
+        s3.getObject({Bucket: bucket, Key: req.params.image}, function(err, data) {
             if (err) {
-                img.image = config.coldstore + "/" + req.params.image
+                img.image = coldstore + "/" + req.params.image
             } else {
-                img.image = "https://s3.amazonaws.com/"+ config.bucket + "/" + req.params.image
+                img.image = "https://s3.amazonaws.com/"+ bucket + "/" + req.params.image
             }
             res.render("image", img);
         })
@@ -98,24 +101,17 @@ app.get(["/:image", "/image/:image"], (req, res, next) => {
 });
 
 app.post("/upload", upload.single('file'), (req, res, next) => {
-    console.log(req.file)
     res.send('/' + req.file.key)
 });
 
-app.use('/mupload', upload.any(), (req, res, next) => {
-  console.log(req.files)
-  res.end(req.files);
-})
-
-function AuthCheck (req, res, next) {
-  if (req.headers['x-api-key'] === config.key) {
-    console.log('User authenticated')
-    next()
-  } else {
-    console.log('User failed authentication')
-    res.status(403).json({ code: 403, status: 'Unauthorized access' })
+app.post('/post', upload.array('files', 12), (req, res, next) => {
+  let results = []
+  for (let i = 0; i < req.files.length; i++) {
+    results.push({ url: 'https://img.dixionary.com', key: req.files[i].key, bucket: 'https://s3.amazonaws.com/img-dixionary/' })
   }
-}
+  console.log(results)
+  res.json(results);
+})
 
 function startServer () {
   if (socket) {
