@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const aws = require('aws-sdk');
 const express = require('express');
 const compression = require('compression');
@@ -24,10 +25,15 @@ const host = process.env.HOST || '0.0.0.0'
 const socket = process.env.SOCKET || null
 const bucket = process.env.BUCKET || null
 const coldstore = process.env.COLDSTORE || null
+const dev_mode = (!process.env.NODE_ENV === 'production')
 
 app.set('port', port)
 app.set('host', host)
 app.set('socket', socket)
+
+if (!dev_mode) {
+  app.set('trust proxy', function (){ return true })
+}
 
 function FileValidation(ext) {
     const validfiles = ['png', 'jpg', 'jpeg', 'gif'];
@@ -53,55 +59,44 @@ const storage = multerS3({
 
 const upload = multer({
     storage: storage,
-    limits: {fileSize: 100000000},
+    limits: { fileSize: 100000000 },
     fileFilter: function(req, file, cb) {
         let ext = file.mimetype.split('/')[1];
         if (FileValidation(ext)) {
             cb(null, true);
         }
         else {
-            cb(new Error("Only images are allowed"));
+            cb(new Error('Only images are allowed'));
         }
     }
 })
 
-const uploadd = multer({
-  dest: 'uploads/'
-})
-
-app.use(morgan('tiny'));
-app.use(bodyParser.urlencoded({ extended: false, limit: '100mb' }));
-app.use('/static', express.static(path.join(__dirname, "static")));
-app.set('views', path.join(__dirname, "views"));
+app.use(morgan('short'));
+app.use('/static', express.static(path.join(__dirname, 'static')));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
-  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  console.log("Users IP: " + ip);
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
-app.get(["/:image", "/image/:image"], (req, res, next) => {
-    if (!req.params.image) {
-        res.status(400).send("Invalid file");
+app.get(["/:image", "/image/:image"], checkImage, (req, res, next) => {
+  let img = {};
+  img.name = req.params.image;
+  s3.getObject({ Bucket: bucket, Key: req.params.image }, (err, data) => {
+    if (err) {
+      img.image = coldstore + "/" + req.params.image
     } else {
-        let img = {};
-        img.name = req.params.image;
-        s3.getObject({Bucket: bucket, Key: req.params.image}, function(err, data) {
-            if (err) {
-                img.image = coldstore + "/" + req.params.image
-            } else {
-                img.image = "https://s3.amazonaws.com/"+ bucket + "/" + req.params.image
-            }
-            res.render("image", img);
-        })
+      img.image = "https://s3.amazonaws.com/"+ bucket + "/" + req.params.image
     }
+    res.render("image", img);
+  })
 });
 
 app.post("/upload", upload.single('file'), (req, res, next) => {
-    res.send('/' + req.file.key)
+  res.send('/' + req.file.key)
 });
 
 app.post('/post', upload.array('files', 12), (req, res, next) => {
@@ -112,6 +107,14 @@ app.post('/post', upload.array('files', 12), (req, res, next) => {
   console.log(results)
   res.json(results);
 })
+
+function checkImage (req, res, next) {
+  if (!req.params.image) {
+    res.status(400).send('Invalid file')
+  } else {
+    next()
+  }
+}
 
 function startServer () {
   if (socket) {
@@ -128,5 +131,5 @@ function startServer () {
 }
 
 if (require.main === module) {
-    startServer();
+  startServer();
 }
