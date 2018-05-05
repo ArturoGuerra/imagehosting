@@ -17,19 +17,16 @@ functions:
     handler: src/handler.render
     events:
       - http: ANY /
-        contentHandling: CONVERT_TO_BINARY
       - http: ANY /{proxy+}
-        contentHandling: CONVERT_TO_BINARY
 
 plugins:
     - serverless-domain-manager
     - serverless-apigw-binary
-    - serverless-apigwy-binary
 
 custom:
   apigwBinary:
-    types:
-      - '*/*'
+      types:
+        - '*/*'
   customDomain:
     domainName: img.dixionary.com
     stage: production

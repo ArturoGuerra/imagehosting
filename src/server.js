@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const express = require('express');
 const { getImage, checkImage, upload } = require('./middleware');
 
-const app = new express();
+const app = exports.app = new express();
 const httpServer = http.createServer(app);
 
 const port = process.env.PORT || 3000
@@ -69,5 +69,3 @@ function startServer () {
 if (require.main === module) {
   startServer();
 }
-
-exports.app = app
