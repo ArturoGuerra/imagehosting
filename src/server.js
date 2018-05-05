@@ -69,3 +69,5 @@ function startServer () {
 if (require.main === module) {
   startServer();
 }
+
+exports.app = app

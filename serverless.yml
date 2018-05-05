@@ -1,0 +1,27 @@
+service: imagehost
+
+provider:
+  name: aws
+  stage: production
+  region: us-east-1
+  runtime: nodejs8.10
+  environment:
+    NODE_ENV: production
+    REGION: us-east-1
+
+functions:
+  main:
+    handler: src/handler.render
+    events:
+      - http: ANY /
+      - http: ANY /{proxy+}
+
+plugins:
+    - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: img.dixionary.com
+    stage: production
+    certificateName: '*.dixionary.com'
+    createRoute53Record: true
