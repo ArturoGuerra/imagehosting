@@ -3,36 +3,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <meta name="twitter:title" content="Dixionary">
-    <meta name="twitter:description" content="Dixionary Image hosting">
-    <meta name="twitter:type" content="website">
-    <meta name="twitter:image" content="<%= image %>">
-    <meta name="twitter:url" content="<%= image %>">
-    <meta name="twitter:card" content="summary_large_image">
-
-    <meta property="og:title" content="Dixionary">
-    <meta property="og:description" content="Dixionary Image hosting">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="<%= image %>">
-    <meta property="og:url" content="<%= image %>">
-
     <link rel='image_src' href='<%= image %>'>
     <link rel='stylesheet' href='/static/css/custom.css'>
-    <link rel='stylesheet' href='/static/css/bulma.css'>
     <title>Dixionary Images</title>
 </head>
 <body>
-    <div class="hero is-fullheight background">
-        <div class='hero-head'><br></div>
-        <div class='container has-text-centered'>
-            <a href="<%= image %>">
-                <img src="<%= image %>" class='imgspecs'>
-            </a>
-            <br>
-            <a class='button is-info' href='<%= image %>' download="<%= name %>">Dovnload</a>
-        </div>
-        <div class='hero-foot'><br></div>
+ <div class='container background'>
+    <div class='child'>
+      <a href="<%= image %>">
+        <img src="<%= image %>">
+      </a>
     </div>
+ </div>
 </body>
 
