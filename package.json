@@ -9,7 +9,6 @@
   "author": "Arturo Guerra",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/storage": "^1.4.0",
     "aws-sdk": "^2.217.1",
     "cors": "^2.8.4",
     "ejs": "^2.5.7",
