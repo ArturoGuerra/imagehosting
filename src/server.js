@@ -47,9 +47,9 @@ app.post("/upload", upload.single('file'), (req, res, next) => {
 app.post('/post', upload.array('files', 12), (req, res, next) => {
   let results = []
   for (let i = 0; i < req.files.length; i++) {
-    results.push({ url: base_url, key: req.files[i].key, bucket: base_cdn })
+    results.push({ url: base_url, key: req.files[i].key, bucket: `${image_cdn}/` })
   }
-  res.json(results);
+  res.send(results);
 })
 
 function startServer () {

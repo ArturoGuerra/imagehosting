@@ -17,8 +17,10 @@ functions:
     handler: src/handler.render
     events:
       - http: ANY /
+        cors: true
         contentHandling: CONVERT_TO_BINARY
       - http: ANY /{proxy+}
+        cors: true
         contentHandling: CONVERT_TO_BINARY
 
 plugins:
