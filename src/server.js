@@ -5,7 +5,8 @@ const path = require('path');
 const cors = require('cors');
 const morgan = require('morgan');
 const express = require('express');
-const { getImage, checkImage, upload } = require('./middleware');
+const bodyParser = require('body-parser');
+const { checkBody, upload } = require('./middleware');
 
 const app = exports.app = new express();
 const httpServer = http.createServer(app);
@@ -13,8 +14,6 @@ const httpServer = http.createServer(app);
 const port = process.env.PORT || 3000
 const host = process.env.HOST || '0.0.0.0'
 const socket = process.env.SOCKET || null
-const base_url = process.env.BASE_URL || console.log('BASE_URL Missing')
-const image_cdn = process.env.IMAGE_CDN || console.log('IMAGE_CDN Missing')
 const dev_mode = (!process.env.NODE_ENV === 'production');
 
 app.set('port', port);
@@ -26,28 +25,18 @@ if (!dev_mode) {
 }
 
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('short'));
-app.use('/static', express.static(path.join(__dirname, 'static')));
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
 
-
-app.get('/:image', checkImage, getImage, (req, res) => {
-  let data = {
-    name: req.params.image,
-    image: `${image_cdn}/${req.params.image}`
-  }
-  res.render('image', data)
+app.post("/upload", checkBody, upload.single('file'), (req, res, next) => {
+  res.send(`${req.headers.url}/${req.file.key}`)
 });
 
-app.post("/upload", upload.single('file'), (req, res, next) => {
-  res.send('/' + req.file.key)
-});
-
-app.post('/post', upload.array('files', 12), (req, res, next) => {
+app.post('/post', checkBody, upload.array('files', 12), (req, res, next) => {
   let results = []
   for (let i = 0; i < req.files.length; i++) {
-    results.push({ url: base_url, key: req.files[i].key, bucket: `${image_cdn}/` })
+    results.push({ url: `${req.headers.url}/${req.files[i].key}` })
   }
   res.send(results);
 })

@@ -8,19 +8,44 @@ provider:
   environment:
     NODE_ENV: production
     BUCKET: 'img-dixionary'
-    BASE_URL: 'https://img.dixionary.com'
-    IMAGE_CDN: 'https://cdn.dixionary.com'
-
 
 functions:
   main:
     handler: src/handler.render
     events:
       - http: ANY /
-        cors: true
+        cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Startlower
+              - Text
+              - Access-Control-Allow-Headers
+              - Access-Control-Allow-Origin
+              - url
+            allowCredentials: false
         contentHandling: CONVERT_TO_BINARY
       - http: ANY /{proxy+}
-        cors: true
+        cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - Startlower
+              - Text
+              - Access-Control-Allow-Headers
+              - Access-Control-Allow-Origin
+              - url
+            allowCredentials: false
         contentHandling: CONVERT_TO_BINARY
 
 plugins:
@@ -33,7 +58,7 @@ custom:
     types:
       - '*/*'
   customDomain:
-    domainName: img.dixionary.com
+    domainName: imgapi.arturonet.com
     stage: production
-    certificateName: '*.dixionary.com'
+    certificateName: '*.arturonet.com'
     createRoute53Record: true

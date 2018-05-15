@@ -22,6 +22,7 @@ const storage = multerS3({
   s3: s3,
   bucket: bucket,
   acl: "public-read",
+  contentType: multerS3.AUTO_CONTENT_TYPE,
   metadata: function (req, file, cb) {
     cb(null, { fieldName: file.fieldname });
   },
@@ -33,30 +34,9 @@ const storage = multerS3({
   }
 })
 
-async function imageExists (image) {
-  return new Promise((resolve, reject) => {
-    s3.getObject({ Bucket: bucket, Key: image }, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
-}
-
-exports.getImage = async (req, res, next) => {
-  try {
-    await imageExists(req.params.image)
-    next()
-  } catch (e) {
-    res.render('404')
-  }
-}
-
-exports.checkImage = (req, res, next) => {
-  if (!req.params.image) {
-    res.status(400).send('Invalid file')
+exports.checkBody = (req, res, next) => {
+  if (!req.headers.url) {
+    res.status(403).send('Invalid credentials')
   } else {
     next()
   }
